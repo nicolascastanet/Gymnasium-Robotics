@@ -1,4 +1,4 @@
-"""A maze environment with the Gymnasium Ant agent (https://github.com/Farama-Foundation/Gymnasium/blob/main/gymnasium/envs/mujoco/ant_v5.py).
+"""A maze environment with the Gymnasium Ant agent (https://github.com/Farama-Foundation/Gymnasium/blob/main/gymnasium/envs/mujoco/ant_v4.py).
 
 The code is inspired by the D4RL repository hosted on GitHub (https://github.com/Farama-Foundation/D4RL), published in the paper
 'D4RL: Datasets for Deep Data-Driven Reinforcement Learning' by Justin Fu, Aviral Kumar, Ofir Nachum, George Tucker, Sergey Levine.
@@ -17,11 +17,11 @@ from typing import Dict, List, Optional, Union
 
 import numpy as np
 from gymnasium import spaces
-from gymnasium.envs.mujoco.ant_v5 import AntEnv
+from gymnasium.envs.mujoco.ant_v4 import AntEnv
 from gymnasium.utils.ezpickle import EzPickle
 
 from gymnasium_robotics.envs.maze.maps import U_MAZE
-from gymnasium_robotics.envs.maze.maze_v4 import MazeEnv
+from gymnasium_robotics.envs.maze.maze import MazeEnv
 from gymnasium_robotics.utils.mujoco_utils import MujocoModelNames
 
 
@@ -38,58 +38,58 @@ class AntMazeEnv(MazeEnv, EzPickle):
     ### Maze Variations
 
     #### Maze size
+
     The map variations for the mazes are the same as for `PointMaze`. The ant environments with fixed goal and reset locations are the following:
 
-    * `AntMaze_UMaze-v5`
-    * `AntMaze_BigMaze-v5`
-    * `AntMaze_HardestMaze-v5`
+    * `AntMaze_UMaze-v3`
+    * `AntMaze_BigMaze-v3`
+    * `AntMaze_HardestMaze-v3`
 
     #### Diverse goal mazes
+
     The environments with fixed reset position for the ant and randomly selected goals, also known as diverse goal, are:
 
-    * `AntMaze_BigMaze_DG-v5`
-    * `AntMaze_HardestMaze_DG-v5`
+    * `AntMaze_BigMaze_DG-v3`
+    * `AntMaze_HardestMaze_DG-v3`
 
     #### Diverse goal and reset mazes
 
     Finally, the environments that select the reset and goal locations randomly are:
 
-    * `AntMaze_BigMaze_DGR-v5`
-    * `AntMaze_HardestMaze_DGR-v5`
+    * `AntMaze_BigMaze_DGR-v3`
+    * `AntMaze_HardestMaze_DGR-v3`
 
     #### Custom maze
+
     Also, any of the `AntMaze` environments can be initialized with a custom maze map by setting the `maze_map` argument like follows:
 
     ```python
     import gymnasium as gym
-    import gymnasium_robotics
-
-    gym.register_envs(gymnasium_robotics)
 
     example_map = [[1, 1, 1, 1, 1],
            [1, C, 0, C, 1],
            [1, 1, 1, 1, 1]]
 
-    env = gym.make('AntMaze_UMaze-v5', maze_map=example_map)
+    env = gym.make('AntMaze_UMaze-v3', maze_map=example_map)
     ```
 
     ### Action Space
-    The action space is the action space of [Gymnasium/MuJoCo/Ant](https://gymnasium.farama.org/environments/mujoco/ant/#action-space):
 
     The action space is a `Box(-1, 1, (8,), float32)`. An action represents the torques applied at the hinge joints.
 
-    | Num | Action                                                            | Control Min | Control Max | Name (in corresponding XML file) | Joint | Type (Unit)  |
+    | Num | Action                                                            | Control Min | Control Max | Name (in corresponding XML file) | Joint | Unit         |
     | --- | ----------------------------------------------------------------- | ----------- | ----------- | -------------------------------- | ----- | ------------ |
-    | 0   | Torque applied on the rotor between the torso and back right hip  | -1          | 1           | hip_4 (right_back_leg)           | hinge | torque (N m) |
-    | 1   | Torque applied on the rotor between the back right two links      | -1          | 1           | angle_4 (right_back_leg)         | hinge | torque (N m) |
-    | 2   | Torque applied on the rotor between the torso and front left hip  | -1          | 1           | hip_1 (front_left_leg)           | hinge | torque (N m) |
-    | 3   | Torque applied on the rotor between the front left two links      | -1          | 1           | angle_1 (front_left_leg)         | hinge | torque (N m) |
-    | 4   | Torque applied on the rotor between the torso and front right hip | -1          | 1           | hip_2 (front_right_leg)          | hinge | torque (N m) |
-    | 5   | Torque applied on the rotor between the front right two links     | -1          | 1           | angle_2 (front_right_leg)        | hinge | torque (N m) |
-    | 6   | Torque applied on the rotor between the torso and back left hip   | -1          | 1           | hip_3 (back_leg)                 | hinge | torque (N m) |
-    | 7   | Torque applied on the rotor between the back left two links       | -1          | 1           | angle_3 (back_leg)               | hinge | torque (N m) |
+    | 0   | Torque applied on the rotor between the torso and front left hip  | -1          | 1           | hip_1 (front_left_leg)           | hinge | torque (N m) |
+    | 1   | Torque applied on the rotor between the front left two links      | -1          | 1           | angle_1 (front_left_leg)         | hinge | torque (N m) |
+    | 2   | Torque applied on the rotor between the torso and front right hip | -1          | 1           | hip_2 (front_right_leg)          | hinge | torque (N m) |
+    | 3   | Torque applied on the rotor between the front right two links     | -1          | 1           | angle_2 (front_right_leg)        | hinge | torque (N m) |
+    | 4   | Torque applied on the rotor between the torso and back left hip   | -1          | 1           | hip_3 (back_leg)                 | hinge | torque (N m) |
+    | 5   | Torque applied on the rotor between the back left two links       | -1          | 1           | angle_3 (back_leg)               | hinge | torque (N m) |
+    | 6   | Torque applied on the rotor between the torso and back right hip  | -1          | 1           | hip_4 (right_back_leg)           | hinge | torque (N m) |
+    | 7   | Torque applied on the rotor between the back right two links      | -1          | 1           | angle_4 (right_back_leg)         | hinge | torque (N m) |
 
     ### Observation Space
+
     The observation is a `goal-aware observation space`. It consists of a dictionary with information about the robot's position and goal. The dictionary consists of the following 3 keys:
 
     * `observation`: Observations consist of positional values of different body parts of the ant, followed by the velocities of those individual parts (their derivatives) with all
@@ -153,19 +153,17 @@ class AntMazeEnv(MazeEnv, EzPickle):
     - *sparse*: the returned reward can have two values: `0` if the ant hasn't reached its final target position, and `1` if the ant is in the final target position (the ant is considered to have reached the goal if the Euclidean distance between both is lower than 0.5 m).
     - *dense*: the returned reward is the negative Euclidean distance between the achieved goal position and the desired goal.
 
-    To initialize this environment with one of the mentioned reward functions the type of reward must be specified in the id string when the environment is initialized. For `sparse` reward the id is the default of the environment, `AntMaze_UMaze-v5`. However, for `dense`
-    reward the id must be modified to `AntMaze_UMazeDense-v5` and initialized as follows:
+    To initialize this environment with one of the mentioned reward functions the type of reward must be specified in the id string when the environment is initialized. For `sparse` reward the id is the default of the environment, `PointMaze_UMaze-v3`. However, for `dense`
+    reward the id must be modified to `AntMaze_UMazeDense-v3` and initialized as follows:
 
     ```python
     import gymnasium as gym
-    import gymnasium_robotics
 
-    gym.register_envs(gymnasium_robotics)
-
-    env = gym.make('AntMaze_UMaze-v5')
+    env = gym.make('AntMaze_UMaze-v3')
     ```
 
     ### Starting State
+
     The goal and initial placement of the ant in the maze follows the same structure for all environments. A discrete cell `(i,j)` is selected for the goal and agent's initial position as previously menitoned in the **Maze** section.
     Then this cell index is converted to its cell center as an `(x,y)` continuous Cartesian coordinates in the MuJoCo simulation. Finally, a sampled noise from a uniform distribution with range `[-0.25,0.25]m` is added to the
     cell's center x and y coordinates. This allows to create a richer goal distribution.
@@ -177,34 +175,29 @@ class AntMazeEnv(MazeEnv, EzPickle):
     * `reset_cell`: `numpy.ndarray, shape=(2,0), type=int` - Specifies the desired `(i,j)` cell location of the reset initial agent position. A uniform sampled noise will be added to the continuous coordinates of the center of the cell.
 
     ### Episode End
+
     * `truncated` - The episode will be `truncated` when the duration reaches a total of `max_episode_steps`.
     * `terminated` - The task can be set to be continuing with the `continuing_task` argument. In this case the episode will never terminate, instead the goal location is randomly selected again. If the task is set not to be continuing the
     episode will be terminated when the Euclidean distance to the goal is less or equal to 0.5.
 
     ### Arguments
+
     * `maze_map` - Optional argument to initialize the environment with a custom maze map.
-    * `continuing_task` - If set to `True` the episode won't be terminated when reaching the goal, instead a new goal location will be generated (unless `reset_target` argument is `True`). If `False` the environment is terminated when the ant reaches the final goal.
-    * `reset_target` - If set to `True` and the argument `continuing_task` is also `True`, when the ant reaches the target goal the location of the goal will be kept the same and no new goal location will be generated. If `False` a new goal will be generated when reached.
-    * `xml_file` - Optional argument to Path of robot model.
-    * Optionally any other [Gymnasium/MuJoCo/Ant](https://gymnasium.farama.org/environments/mujoco/ant/#arguments/) argument such `ctrl_cost_weight`.
+    * `continuing_task` - If set to `True` the episode won't be terminated when reaching the goal, instead a new goal location will be generated. If `False` the environment is terminated when the ant reaches the final goal.
+    * `use_contact_forces` - If `True` contact forces of the ant are included in the `observation`.
 
     Note that, the maximum number of timesteps before the episode is `truncated` can be increased or decreased by specifying the `max_episode_steps` argument at initialization. For example,
     to increase the total number of timesteps to 100 make the environment as follows:
 
     ```python
     import gymnasium as gym
-    import gymnasium_robotics
 
-    gym.register_envs(gymnasium_robotics)
-
-    env = gym.make('AntMaze_UMaze-v5', max_episode_steps=100)
+    env = gym.make('AntMaze_UMaze-v3', max_episode_steps=100)
     ```
 
     ### Version History
-    - v5: Is now based on `Gymnasium/MuJoCoAnt-v5/`, and inherits all features from it such as the `xml_file` argument for the loading of third party model.
-    - v4: Refactor compute_terminated in MazeEnv into a pure function compute_terminated and a new function update_goal which resets the goal position. Ant bug fix: Reward is now computed before reset (i.e. sparse reward is not always zero). Maze bug fix: Ant can no longer reset within the goal radius 0.45 due to maze_size_scaling factor missing in MazeEnv. info['success'] key added.
-    - v3: refactor version of the D4RL environment, also create dependency on newest [mujoco python bindings](https://mujoco.readthedocs.io/en/latest/python.html) maintained by the MuJoCo team in Deepmind.
-    - v2 & v1: legacy versions in the [D4RL](https://github.com/Farama-Foundation/D4RL).
+    * v3: refactor version of the D4RL environment, also create dependency on newest [mujoco python bindings](https://mujoco.readthedocs.io/en/latest/python.html) maintained by the MuJoCo team in Deepmind.
+    * v2 & v1: legacy versions in the [D4RL](https://github.com/Farama-Foundation/D4RL).
     """
 
     metadata = {
@@ -222,17 +215,12 @@ class AntMazeEnv(MazeEnv, EzPickle):
         maze_map: List[List[Union[str, int]]] = U_MAZE,
         reward_type: str = "sparse",
         continuing_task: bool = True,
-        reset_target: bool = False,
-        xml_file: Union[str, None] = None,
         **kwargs,
     ):
-        if xml_file is None:
-            # Get the ant.xml path from the Gymnasium package
-            ant_xml_file_path = path.join(
-                path.dirname(sys.modules[AntEnv.__module__].__file__), "assets/ant.xml"
-            )
-        else:
-            ant_xml_file_path = xml_file
+        # Get the ant.xml path from the Gymnasium package
+        ant_xml_file_path = path.join(
+            path.dirname(sys.modules[AntEnv.__module__].__file__), "assets/ant.xml"
+        )
         super().__init__(
             agent_xml_path=ant_xml_file_path,
             maze_map=maze_map,
@@ -240,7 +228,6 @@ class AntMazeEnv(MazeEnv, EzPickle):
             maze_height=0.5,
             reward_type=reward_type,
             continuing_task=continuing_task,
-            reset_target=reset_target,
             **kwargs,
         )
         # Create the MuJoCo environment, include position observation of the Ant for GoalEnv
@@ -267,13 +254,13 @@ class AntMazeEnv(MazeEnv, EzPickle):
         )
 
         self.render_mode = render_mode
+
         EzPickle.__init__(
             self,
             render_mode,
             maze_map,
             reward_type,
             continuing_task,
-            reset_target,
             **kwargs,
         )
 
@@ -284,9 +271,6 @@ class AntMazeEnv(MazeEnv, EzPickle):
 
         obs, info = self.ant_env.reset(seed=seed)
         obs_dict = self._get_obs(obs)
-        info["success"] = bool(
-            np.linalg.norm(obs_dict["achieved_goal"] - self.goal) <= 0.45
-        )
 
         return obs_dict, info
 
@@ -294,16 +278,13 @@ class AntMazeEnv(MazeEnv, EzPickle):
         ant_obs, _, _, _, info = self.ant_env.step(action)
         obs = self._get_obs(ant_obs)
 
-        reward = self.compute_reward(obs["achieved_goal"], self.goal, info)
         terminated = self.compute_terminated(obs["achieved_goal"], self.goal, info)
         truncated = self.compute_truncated(obs["achieved_goal"], self.goal, info)
-        info["success"] = bool(np.linalg.norm(obs["achieved_goal"] - self.goal) <= 0.45)
+
+        reward = self.compute_reward(obs["achieved_goal"], self.goal, info)
 
         if self.render_mode == "human":
             self.render()
-
-        # Update the goal position if necessary
-        self.update_goal(obs["achieved_goal"])
 
         return obs, reward, terminated, truncated, info
 
@@ -328,11 +309,3 @@ class AntMazeEnv(MazeEnv, EzPickle):
     def close(self):
         super().close()
         self.ant_env.close()
-
-    @property
-    def model(self):
-        return self.ant_env.model
-
-    @property
-    def data(self):
-        return self.ant_env.data

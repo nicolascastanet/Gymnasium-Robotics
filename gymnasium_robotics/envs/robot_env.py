@@ -184,13 +184,17 @@ class BaseRobotEnv(GoalEnv):
             self.render()
 
         return obs, {}
+    
+    
+    def set_goal(self,goal):
+        self.goal = goal
 
     # Extension methods
     # ----------------------------
     def _mujoco_step(self, action):
         """Advance the mujoco simulation.
 
-        Override depending on the python bindings, either mujoco or mujoco_py
+        Override depending on the python binginds, either mujoco or mujoco_py
         """
         raise NotImplementedError
 
@@ -282,11 +286,7 @@ class MujocoRobotEnv(BaseRobotEnv):
         from gymnasium.envs.mujoco.mujoco_rendering import MujocoRenderer
 
         self.mujoco_renderer = MujocoRenderer(
-            self.model,
-            self.data,
-            default_camera_config,
-            width=self.width,
-            height=self.height,
+            self.model, self.data, default_camera_config
         )
 
     def _initialize_simulation(self):
@@ -303,8 +303,13 @@ class MujocoRobotEnv(BaseRobotEnv):
         self.initial_qvel = np.copy(self.data.qvel)
 
     def _reset_sim(self):
-        # Reset buffers for joint states, warm-start, control buffers etc.
-        mujoco.mj_resetData(self.model, self.data)
+        self.data.time = self.initial_time
+        self.data.qpos[:] = np.copy(self.initial_qpos)
+        self.data.qvel[:] = np.copy(self.initial_qvel)
+        if self.model.na != 0:
+            self.data.act[:] = None
+
+        mujoco.mj_forward(self.model, self.data)
         return super()._reset_sim()
 
     def render(self):
@@ -313,6 +318,7 @@ class MujocoRobotEnv(BaseRobotEnv):
         Returns:
             rgb image (np.ndarray): if render_mode is "rgb_array", return a 3D image array.
         """
+        
         self._render_callback()
         return self.mujoco_renderer.render(self.render_mode)
 

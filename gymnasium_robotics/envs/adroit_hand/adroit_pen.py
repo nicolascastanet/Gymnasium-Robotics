@@ -165,9 +165,6 @@ class AdroitHandPenEnv(MujocoEnv, EzPickle):
 
     ```python
     import gymnasium as gym
-    import gymnasium_robotics
-
-    gym.register_envs(gymnasium_robotics)
 
     env = gym.make('AdroitHandPen-v1', max_episode_steps=400)
     ```
@@ -304,7 +301,9 @@ class AdroitHandPenEnv(MujocoEnv, EzPickle):
         # compute the sparse reward variant first
         goal_distance = np.linalg.norm(obj_pos - desired_loc)
         orien_similarity = np.dot(obj_orien, desired_orien)
-        goal_achieved = goal_distance < 0.075 and orien_similarity > 0.95
+        goal_achieved = (
+            True if (goal_distance < 0.075 and orien_similarity > 0.95) else False
+        )
         reward = 10.0 if goal_achieved else -0.1
 
         # goal_failed = obj_pos[2] < 0.075

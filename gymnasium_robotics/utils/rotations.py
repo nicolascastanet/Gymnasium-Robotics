@@ -47,7 +47,7 @@ Conventions
     - All functions accept batches as well as individual rotations
     - All rotation conventions match respective MuJoCo defaults
     - All angles are in radians
-    - Matrices follow LR convention
+    - Matricies follow LR convention
     - Euler Angles are all relative with 'xyz' axes ordering
     - See specific representation for more information
 
@@ -102,7 +102,7 @@ TODO / Missing
     - More representations (SO3, etc)
     - Random sampling (e.g. sample uniform random rotation)
     - Performance benchmarks/measurements
-    - (Maybe) define everything as to/from matrices, for simplicity
+    - (Maybe) define everything as to/from matricies, for simplicity
 """
 
 # For testing whether a number is close to zero

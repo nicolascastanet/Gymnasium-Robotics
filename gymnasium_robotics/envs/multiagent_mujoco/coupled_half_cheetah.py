@@ -10,7 +10,6 @@ Original Author: Schroeder de Witt
 - fixed `_get_obs()` (now also returns tendon related observations)
 - renamed CoupledHalfCheetah -> CoupledHalfCheetahEnv
 """
-
 import os
 import typing
 
@@ -39,7 +38,7 @@ class CoupledHalfCheetahEnv(mujoco_env.MujocoEnv, EzPickle):
     | 0   | Torque applied on the back thigh rotor of the first cheetah   | -1          | 1           | bthigh0                          | hinge | torque (N m) |
     | 1   | Torque applied on the back shin rotor of the first cheetah    | -1          | 1           | bshin0                           | hinge | torque (N m) |
     | 2   | Torque applied on the back foot rotor of the first cheetah    | -1          | 1           | bfoot0                           | hinge | torque (N m) |
-    | 3   | Torque applied on the front thigh rotor of the first cheetah  | -1          | 1           | fthigh0                          | hinge | torque (N m) |
+    | 3   | Torque applied on the front thigh rotor of the first cheetah   | -1          | 1           | fthigh0                          | hinge | torque (N m) |
     | 4   | Torque applied on the front shin rotor of the first cheetah   | -1          | 1           | fshin0                           | hinge | torque (N m) |
     | 5   | Torque applied on the front foot rotor of the first cheetah   | -1          | 1           | ffoot0                           | hinge | torque (N m) |
     | 6   | Torque applied on the back thigh rotor of the second cheetah  | -1          | 1           | bthigh1                          | hinge | torque (N m) |
@@ -130,7 +129,7 @@ class CoupledHalfCheetahEnv(mujoco_env.MujocoEnv, EzPickle):
     No additional arguments are currently supported in pre-release.
 
     ## Version History
-    * pre_release: part of `Gymnasium-Robotics/MaMuJoCo`
+    * pre_release: part of `Gymnasium-Robotics/mamujoco`
     """
 
     metadata = {
@@ -146,7 +145,7 @@ class CoupledHalfCheetahEnv(mujoco_env.MujocoEnv, EzPickle):
         """Init.
 
         Args:
-            render_mode: see [Gymnasium/MuJoCo](https://gymnasium.farama.org/environments/mujoco/)
+            render_mode: see [Gymansium/MuJoCo](https://gymnasium.farama.org/environments/mujoco/)
         """
         self._forward_reward_weight = 1
         self._ctrl_cost_weight = 0.1

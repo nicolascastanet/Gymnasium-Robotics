@@ -5,7 +5,8 @@ from gymnasium.utils.ezpickle import EzPickle
 from gymnasium_robotics.envs.fetch import MujocoFetchEnv, MujocoPyFetchEnv
 
 # Ensure we get the path separator correct on windows
-MODEL_XML_PATH = os.path.join("fetch", "reach.xml")
+#MODEL_XML_PATH = os.path.join("fetch", "reach_1.xml")
+MODEL_XML_PATH = os.path.join("fetch", "reach_obstacle.xml")
 
 
 class MujocoFetchReachEnv(MujocoFetchEnv, EzPickle):
@@ -77,16 +78,13 @@ class MujocoFetchReachEnv(MujocoFetchEnv, EzPickle):
     the end effector and the goal is lower than 0.05 m).
     - *dense*: the returned reward is the negative Euclidean distance between the achieved goal position and the desired goal.
 
-    To initialize this environment with one of the mentioned reward functions the type of reward must be specified in the id string when the environment is initialized. For `sparse` reward the id is the default of the environment, `FetchReach-v3`. However, for `dense`
-    reward the id must be modified to `FetchReachDense-v3` and initialized as follows:
+    To initialize this environment with one of the mentioned reward functions the type of reward must be specified in the id string when the environment is initialized. For `sparse` reward the id is the default of the environment, `FetchReach-v2`. However, for `dense`
+    reward the id must be modified to `FetchReachDense-v2` and initialized as follows:
 
     ```python
     import gymnasium as gym
-    import gymnasium_robotics
 
-    gym.register_envs(gymnasium_robotics)
-
-    env = gym.make('FetchReachDense-v3')
+    env = gym.make('FetchReachDense-v2')
     ```
 
     ## Starting State
@@ -107,32 +105,36 @@ class MujocoFetchReachEnv(MujocoFetchEnv, EzPickle):
 
     ```python
     import gymnasium as gym
-    import gymnasium_robotics
 
-    gym.register_envs(gymnasium_robotics)
-
-    env = gym.make('FetchReach-v3', max_episode_steps=100)
+    env = gym.make('FetchReach-v2', max_episode_steps=100)
     ```
 
     ## Version History
-    * v3: Fixed bug: `env.reset()` not properly resetting the internal state. Fetch environments now properly reset their state (related [GitHub issue](https://github.com/Farama-Foundation/Gymnasium-Robotics/issues/207)).
+
     * v2: the environment depends on the newest [mujoco python bindings](https://mujoco.readthedocs.io/en/latest/python.html) maintained by the MuJoCo team in Deepmind.
     * v1: the environment depends on `mujoco_py` which is no longer maintained.
     """
 
     def __init__(self, reward_type: str = "sparse", **kwargs):
+        #initial_qpos = {
+        #    "robot0:slide0": 0.4049,
+        #    "robot0:slide1": 0.48,
+        #    "robot0:slide2": 0.0,
+        #}
+        
         initial_qpos = {
             "robot0:slide0": 0.4049,
             "robot0:slide1": 0.48,
             "robot0:slide2": 0.0,
         }
+        
         MujocoFetchEnv.__init__(
             self,
             model_path=MODEL_XML_PATH,
             has_object=False,
             block_gripper=True,
             n_substeps=20,
-            gripper_extra_height=0.2,
+            gripper_extra_height=0.2,#0.2,
             target_in_the_air=True,
             target_offset=0.0,
             obj_range=0.15,

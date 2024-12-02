@@ -165,9 +165,6 @@ class AdroitHandRelocateEnv(MujocoEnv, EzPickle):
 
     ```python
     import gymnasium as gym
-    import gymnasium_robotics
-
-    gym.register_envs(gymnasium_robotics)
 
     env = gym.make('AdroitHandRelocate-v1', max_episode_steps=400)
     ```
@@ -289,7 +286,7 @@ class AdroitHandRelocateEnv(MujocoEnv, EzPickle):
 
         # compute the sparse reward variant first
         goal_distance = float(np.linalg.norm(obj_pos - target_pos))
-        goal_achieved = goal_distance < 0.1
+        goal_achieved = True if goal_distance < 0.1 else False
         reward = 10.0 if goal_achieved else -0.1
 
         # override reward if not sparse reward

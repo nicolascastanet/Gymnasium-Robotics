@@ -20,9 +20,17 @@ from gymnasium.utils.ezpickle import EzPickle
 
 # from gymnasium_robotics.envs.point_maze.point_env import PointEnv
 from gymnasium_robotics.envs.maze.maps import U_MAZE
-from gymnasium_robotics.envs.maze.maze_v4 import MazeEnv
+from gymnasium_robotics.envs.maze.maze import MazeEnv
 from gymnasium_robotics.envs.maze.point import PointEnv
 from gymnasium_robotics.utils.mujoco_utils import MujocoModelNames
+
+
+DEFAULT_CAMERA_CONFIG = {
+    "distance": 15,
+    #"azimuth": 132.0,
+    "elevation": -90.0,
+    "lookat": np.array([0.0, 0.0, 0.0]),
+}
 
 
 class PointMazeEnv(MazeEnv, EzPickle):
@@ -196,9 +204,6 @@ class PointMazeEnv(MazeEnv, EzPickle):
 
     ```python
     import gymnasium as gym
-    import gymnasium_robotics
-
-    gym.register_envs(gymnasium_robotics)
 
     example_map = [[1, 1, 1, 1, 1],
            [1, C, 0, C, 1],
@@ -249,16 +254,13 @@ class PointMazeEnv(MazeEnv, EzPickle):
 
     The reward can be initialized as `sparse` or `dense`:
     - *sparse*: the returned reward can have two values: `0` if the ball hasn't reached its final target position, and `1` if the ball is in the final target position (the ball is considered to have reached the goal if the Euclidean distance between both is lower than 0.5 m).
-    - *dense*: the returned reward is the exponential negative Euclidean distance between the achieved goal position and the desired goal.
+    - *dense*: the returned reward is the negative Euclidean distance between the achieved goal position and the desired goal.
 
     To initialize this environment with one of the mentioned reward functions the type of reward must be specified in the id string when the environment is initialized. For `sparse` reward the id is the default of the environment, `PointMaze_UMaze-v3`. However, for `dense`
     reward the id must be modified to `PointMaze_UMazeDense-v3` and initialized as follows:
 
     ```python
     import gymnasium as gym
-    import gymnasium_robotics
-
-    gym.register_envs(gymnasium_robotics)
 
     env = gym.make('PointMaze_UMazeDense-v3')
     ```
@@ -285,16 +287,12 @@ class PointMazeEnv(MazeEnv, EzPickle):
 
     * `maze_map` - Optional argument to initialize the environment with a custom maze map.
     * `continuing_task` - If set to `True` the episode won't be terminated when reaching the goal, instead a new goal location will be generated. If `False` the environment is terminated when the ball reaches the final goal.
-    * `reset_target` - If set to `True` and the argument `continuing_task` is also `True`, when the ant reaches the target goal the location of the goal will be kept the same and no new goal location will be generated. If `False` a new goal will be generated when reached.
 
     Note that, the maximum number of timesteps before the episode is `truncated` can be increased or decreased by specifying the `max_episode_steps` argument at initialization. For example,
     to increase the total number of timesteps to 100 make the environment as follows:
 
     ```python
     import gymnasium as gym
-    import gymnasium_robotics
-
-    gym.register_envs(gymnasium_robotics)
 
     env = gym.make('PointMaze_UMaze-v3', max_episode_steps=100)
     ```
@@ -319,7 +317,6 @@ class PointMazeEnv(MazeEnv, EzPickle):
         render_mode: Optional[str] = None,
         reward_type: str = "sparse",
         continuing_task: bool = True,
-        reset_target: bool = False,
         **kwargs,
     ):
         point_xml_file_path = path.join(
@@ -332,7 +329,6 @@ class PointMazeEnv(MazeEnv, EzPickle):
             maze_height=0.4,
             reward_type=reward_type,
             continuing_task=continuing_task,
-            reset_target=reset_target,
             **kwargs,
         )
 
@@ -342,7 +338,7 @@ class PointMazeEnv(MazeEnv, EzPickle):
         self.point_env = PointEnv(
             xml_file=self.tmp_xml_file_path,
             render_mode=render_mode,
-            default_camera_config=default_camera_config,
+            default_camera_config=DEFAULT_CAMERA_CONFIG,
             **kwargs,
         )
         self._model_names = MujocoModelNames(self.point_env.model)
@@ -368,7 +364,6 @@ class PointMazeEnv(MazeEnv, EzPickle):
             render_mode,
             reward_type,
             continuing_task,
-            reset_target,
             **kwargs,
         )
 
@@ -393,15 +388,13 @@ class PointMazeEnv(MazeEnv, EzPickle):
         obs, _, _, _, info = self.point_env.step(action)
         obs_dict = self._get_obs(obs)
 
-        reward = self.compute_reward(obs_dict["achieved_goal"], self.goal, info)
-        terminated = self.compute_terminated(obs_dict["achieved_goal"], self.goal, info)
-        truncated = self.compute_truncated(obs_dict["achieved_goal"], self.goal, info)
         info["success"] = bool(
             np.linalg.norm(obs_dict["achieved_goal"] - self.goal) <= 0.45
         )
+        reward = self.compute_reward(obs_dict["achieved_goal"], self.goal, info)
 
-        # Update the goal position if necessary
-        self.update_goal(obs_dict["achieved_goal"])
+        terminated = self.compute_terminated(obs_dict["achieved_goal"], self.goal, info)
+        truncated = self.compute_truncated(obs_dict["achieved_goal"], self.goal, info)
 
         return obs_dict, reward, terminated, truncated, info
 
@@ -424,11 +417,3 @@ class PointMazeEnv(MazeEnv, EzPickle):
     def close(self):
         super().close()
         self.point_env.close()
-
-    @property
-    def model(self):
-        return self.point_env.model
-
-    @property
-    def data(self):
-        return self.point_env.data

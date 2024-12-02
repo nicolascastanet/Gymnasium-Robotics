@@ -163,9 +163,6 @@ class AdroitHandDoorEnv(MujocoEnv, EzPickle):
 
     ```python
     import gymnasium as gym
-    import gymnasium_robotics
-
-    gym.register_envs(gymnasium_robotics)
 
     env = gym.make('AdroitHandDoor-v1', max_episode_steps=400)
     ```
@@ -285,7 +282,7 @@ class AdroitHandDoorEnv(MujocoEnv, EzPickle):
 
         # compute the sparse reward variant first
         goal_distance = self.data.qpos[self.door_hinge_addrs]
-        goal_achieved = goal_distance >= 1.35
+        goal_achieved = True if goal_distance >= 1.35 else False
         reward = 10.0 if goal_achieved else -0.1
 
         # override reward if not sparse reward

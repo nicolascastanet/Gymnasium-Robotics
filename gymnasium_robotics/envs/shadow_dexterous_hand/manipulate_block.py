@@ -166,9 +166,6 @@ class MujocoHandBlockEnv(MujocoManipulateEnv, EzPickle):
 
     ```python
     import gymnasium as gym
-    import gymnasium_robotics
-
-    gym.register_envs(gymnasium_robotics)
 
     env = gym.make('HandManipulateBlock-v1')
     ```
@@ -196,9 +193,6 @@ class MujocoHandBlockEnv(MujocoManipulateEnv, EzPickle):
 
     ```python
     import gymnasium as gym
-    import gymnasium_robotics
-
-    gym.register_envs(gymnasium_robotics)
 
     env = gym.make('HandManipulateBlock-v1', max_episode_steps=100)
     ```
@@ -209,6 +203,7 @@ class MujocoHandBlockEnv(MujocoManipulateEnv, EzPickle):
 
     * v1: the environment depends on the newest [mujoco python bindings](https://mujoco.readthedocs.io/en/latest/python.html) maintained by the MuJoCo team in Deepmind.
     * v0: the environment depends on `mujoco_py` which is no longer maintained.
+
     """
 
     def __init__(

@@ -1,6 +1,5 @@
 """Utility functions to read the file with the joints configuration of the Franka robot located at '../assets/kitchen_franka/franka_assets/franka_config.xml'.
 """
-
 import xml.etree.ElementTree as ET
 
 import numpy as np
@@ -24,8 +23,8 @@ def read_config_from_node(root_node, parent_name, child_name, dtype=int):
 def get_config_root_node(config_file_name=None, config_file_data=None):
     # get root
     if config_file_data is None:
-        with open(config_file_name) as config_file_content:
-            config = ET.parse(config_file_content)
+        config_file_content = open(config_file_name)
+        config = ET.parse(config_file_content)
         root_node = config.getroot()
     else:
         root_node = ET.fromstring(config_file_data)

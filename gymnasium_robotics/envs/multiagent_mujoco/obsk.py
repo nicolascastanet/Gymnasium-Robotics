@@ -6,17 +6,18 @@ Original Author: Schroeder de Witt
 
 Then Modified by @Kallinteris-Andreas for this project
 changes:
- -  General code cleanup, factorization, type hinting, adding documentation and code comments
+ - General code cleanup, factorization, type hinting, adding documentation and comments
  - `build_obs`: fixed global observations, fixed body observations (cvel, cinert, cfrc_ext), how uses mujoco.data, instead of gym.env
  - `HalfCheetah`: fix action ordering
  - `Ant`: Fix global observation, fix "2x4d" factorization how having diagonal observations
  - `Humanoid`s: Added Body support, fixed abdomen observations, added/fixed missing global torso observations, fixed action ordering
- - `Reacher`: Fixed body mapping
+ - `Reacher`: Fixxed body mapping
  - `Pusher`: Added support for `Pusher`
  - `Swimmer`: Added Front tip to global observations
  - `Walker2D`: Added missing Global Observations
  - `CoupledHalfCheetah`: improved node naming, fixed tendon Jacobian observations, fixed action mapping of the second cheetah, added missing global observationsm, fixed action ordering
  - `ManySegmentAnt`: Fixed Global Observations
+ - added new functions: `_observation_structure`
 
 This project is covered by the Apache 2.0 License.
 """
@@ -156,20 +157,18 @@ def get_joints_at_kdist(
 def build_obs(
     data,
     k_dict: dict[int, list[Node]],
-    local_categories: list[list[str]],
+    k_categories: list[list[str]],
     global_nodes: list[Node],
     global_categories: tuple[str, ...],
-    ignore_body_fn: bool = False,
 ) -> np.ndarray:
     """Given a k_dict from get_joints_at_kdist, extract observation vector.
 
     Args:
-        data: a structure containing the global state of the agent.
-        k_dict: the k_dict of an agent.
-        local_categories: the categories at every depth level.
-        global_nodes: The MuJoCo global godes.
-        global_categories: The observation Categories for the global MuJoCo nodes.
-        ingore_body_fn: If `True` it ignores the nodes's `body_fn` membeer variable.
+        data: a structure containing the global state of the agent
+        k_dict: the k_dict of an agent
+        k_categories: the categories at every depth level
+        global_nodes: The MuJoCo global godes
+        global_categories: The observation Categories for the global MuJoCo nodes
 
     Returns:
         observation for the agent (indicated by K_dict)
@@ -179,7 +178,7 @@ def build_obs(
     # Add local observations
     for k in sorted(list(k_dict.keys())):
         for node in k_dict[k]:
-            for category in local_categories[k]:
+            for category in k_categories[k]:
                 if category in node.extra_obs:
                     items = node.extra_obs[category](data).tolist()
                     obs_lst.extend(items if isinstance(items, list) else [items])
@@ -196,7 +195,7 @@ def build_obs(
                             body_set_dict[category] = set()
                         if body not in body_set_dict[category]:
                             items = getattr(data, category)[body].tolist()
-                            if node.body_fn is not None and not ignore_body_fn:
+                            if node.body_fn is not None:
                                 items = node.body_fn(body, items)
                             obs_lst.extend(
                                 items if isinstance(items, list) else [items]
@@ -221,7 +220,7 @@ def build_obs(
                         body_set_dict[category] = set()
                     if body not in body_set_dict[category]:
                         items = getattr(data, category)[body].tolist()
-                        if joint.body_fn is not None and not ignore_body_fn:
+                        if joint.body_fn is not None:
                             items = joint.body_fn(body, items)
                         obs_lst.extend(items if isinstance(items, list) else [items])
                         body_set_dict[category].add(body)
@@ -241,7 +240,8 @@ def get_parts_and_edges(  # noqa: C901
     Returns:
         the partition of the mujoco graph nodes, the graph edges, and global nodes
     """
-    if label in ["HalfCheetah"]:
+    if label in ["HalfCheetah-v4"]:
+
         # define Mujoco graph
         bthigh = Node("bthigh", -6, -6, 0)
         bshin = Node("bshin", -5, -5, 1)
@@ -276,7 +276,8 @@ def get_parts_and_edges(  # noqa: C901
 
         return parts, edges, globals
 
-    elif label in ["Ant"]:
+    elif label in ["Ant-v4"]:
+
         # define Mujoco graph
         torso = 1
         front_left_leg = 2
@@ -365,17 +366,18 @@ def get_parts_and_edges(  # noqa: C901
             HyperEdge(hip4, hip1, hip2, hip3),
         ]
 
-        root = Node(
-            "root",
+        torso = Node(
+            "torso",
             0,
             0,
             None,
             extra_obs={
                 "qpos": lambda data: data.qpos[2:7],
                 "qvel": lambda data: data.qvel[:6],
+                "cfrc_ext": lambda data: np.clip(data.cfrc_ext[0:1], -1, 1),
             },
         )
-        globals = [root]
+        globals = [torso]
 
         if partitioning is None:
             parts = [(hip4, ankle4, hip1, ankle1, hip2, ankle2, hip3, ankle3)]
@@ -390,7 +392,8 @@ def get_parts_and_edges(  # noqa: C901
 
         return parts, edges, globals
 
-    elif label in ["Hopper"]:
+    elif label in ["Hopper-v4"]:
+
         # define Mujoco-Graph
         thigh_joint = Node(
             "thigh_joint",
@@ -464,7 +467,7 @@ def get_parts_and_edges(  # noqa: C901
 
         return parts, edges, globals
 
-    elif label in ["Humanoid", "HumanoidStandup"]:
+    elif label in ["Humanoid-v4", "HumanoidStandup-v4"]:
         # bodies
         # worldbody = 0
         torso = 1
@@ -546,6 +549,8 @@ def get_parts_and_edges(  # noqa: C901
             extra_obs={
                 "qpos": lambda data: data.qpos[2:7],
                 "qvel": lambda data: data.qvel[:6],
+                "qfrc_actuator": lambda data: data.qfrc_actuator[:6],
+                # "cfrc_ext": lambda data: np.clip(data.cfrc_ext[0:1], -1, 1),
             },
         )
         globals = [root]
@@ -603,7 +608,7 @@ def get_parts_and_edges(  # noqa: C901
 
         return parts, edges, globals
 
-    elif label in ["Reacher"]:
+    elif label in ["Reacher-v4"]:
         # define Mujoco-Graph
         # worldbody = 0
         body0 = 1
@@ -674,7 +679,7 @@ def get_parts_and_edges(  # noqa: C901
 
         return parts, edges, globals
 
-    elif label in ["Pusher"]:
+    elif label in ["Pusher-v4"]:
         # define Mujoco-Graph
         r_shoulder_pan_joint = Node("r_wrist_roll_joint", 0, 0, 0)
         r_shoulder_lift_joint = Node("r_wrist_roll_joint", 1, 1, 1)
@@ -754,7 +759,7 @@ def get_parts_and_edges(  # noqa: C901
 
         return parts, edges, globals
 
-    elif label in ["Swimmer"]:
+    elif label in ["Swimmer-v4"]:
         # define Mujoco-Graph
         joint0 = Node(
             "rot2",
@@ -789,7 +794,7 @@ def get_parts_and_edges(  # noqa: C901
 
         return parts, edges, globals
 
-    elif label in ["Walker2d"]:
+    elif label in ["Walker2d-v4"]:
         # define Mujoco-Graph
         thigh_joint = Node("thigh_joint", -6, -6, 0)
         leg_joint = Node("leg_joint", -5, -5, 1)
@@ -810,7 +815,7 @@ def get_parts_and_edges(  # noqa: C901
         )
         root_z = Node("root_z", 1, 1, None)
         root_y = Node("root_y", 2, 2, None)
-        globals = [root_x, root_z, root_y]
+        globals = [root_x, root_x, root_z]
 
         if partitioning is None:
             parts = [
@@ -839,7 +844,7 @@ def get_parts_and_edges(  # noqa: C901
 
         return parts, edges, globals
 
-    elif label in ["CoupledHalfCheetah"]:
+    elif label in ["CoupledHalfCheetah-v4"]:
         # define Mujoco graph
         tendon = 0
 
@@ -935,7 +940,7 @@ def get_parts_and_edges(  # noqa: C901
 
         return parts, edges, globals
 
-    elif label in ["ManySegmentSwimmer"]:
+    elif label in ["ManySegmentSwimmer-v4"]:
         assert partitioning is not None, "Partitioning, required with " + label
 
         try:
@@ -960,7 +965,7 @@ def get_parts_and_edges(  # noqa: C901
         ]
         return parts, edges, globals
 
-    elif label in ["ManySegmentAnt"]:
+    elif label in ["ManySegmentAnt-v4"]:
         assert partitioning is not None, "Partitioning, required with " + label
 
         try:
@@ -1057,3 +1062,74 @@ def get_parts_and_edges(  # noqa: C901
         return parts, edges, globals
     else:
         raise Exception(f"UNKNOWN label environment: {label}")
+
+
+def _observation_structure(scenario: str) -> dict[str, int]:
+    """Get the types of observations for each Gymnasium.MuJoCo environment.
+
+    Args:
+        scenario: the mujoco scenartio
+
+    Returns:
+        a dictionary keyied by observation type with values indicating the number of observations for that type
+    """
+    ret = {
+        "skipped_qpos": 0,  # Position data what is excluded/skip
+        "qpos": 0,  # Position
+        "qvel": 0,  # Velocity
+        "cinert": 0,  # com inertia
+        "cvel": 0,  # com velocity
+        "qfrc_actuator": 0,  # Actuator Forces
+        "cfrc_ext": 0,  # Contact Forces
+    }
+
+    if scenario == "Ant-v4":
+        ret["skipped_qpos"] = 2
+        ret["qpos"] = 13
+        ret["qvel"] = 14
+        # ret["cfrc_ext"] = 84
+    elif scenario == "HalfCheetah-v4":
+        ret["skipped_qpos"] = 1
+        ret["qpos"] = 8
+        ret["qvel"] = 9
+    elif scenario == "Hopper-v4":
+        ret["skipped_qpos"] = 1
+        ret["qpos"] = 5
+        ret["qvel"] = 6
+    elif scenario == "HumanoidStandup-v4" or scenario == "Humanoid-v4":
+        ret["skipped_qpos"] = 2
+        ret["qpos"] = 22
+        ret["qvel"] = 23
+        ret["cinert"] = 140
+        ret["cvel"] = 84
+        ret["qfrc_actuator"] = 23
+        ret["cfrc_ext"] = 84
+    elif scenario == "InvertedDoublePendulum-v4":
+        assert False, scenario + "can not be factorized"
+        ret["qpos"] = 3
+        ret["qvel"] = 3
+        # qfrc_constraint = 3
+    elif scenario == "InvertedPendulum-v4":
+        assert False, scenario + "can not be factorized"
+        ret["qpos"] = 2
+        ret["qvel"] = 2
+    elif scenario == "Pusher-v4":
+        assert False, scenario + "is not supported"
+        ret["qpos"] = 7
+        ret["qvel"] = 7
+        # 9 body_com
+    elif scenario == "Reacher-v4":
+        assert False, scenario + "can not be factorized"
+        ret["qpos"] = 6
+        ret["qvel"] = 2
+        # 3 body_com
+    elif scenario == "Swimmer-v4":
+        ret["skipped_qpos"] = 2
+        ret["qpos"] = 3
+        ret["qvel"] = 5
+    elif scenario == "Walker2d-v4":
+        ret["skipped_qpos"] = 1
+        ret["qpos"] = 8
+        ret["qvel"] = 9
+
+    return ret

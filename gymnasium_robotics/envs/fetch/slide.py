@@ -74,9 +74,9 @@ class MujocoFetchSlideEnv(MujocoFetchEnv, EzPickle):
         | 3   | Puck x position in global coordinates                                                                                                 | -Inf   | Inf    | object0                               |-                                       |-         | position (m)             |
         | 4   | Puck y position in global coordinates                                                                                                 | -Inf   | Inf    | object0                               |-                                       |-         | position (m)             |
         | 5   | Puck z position in global coordinates                                                                                                 | -Inf   | Inf    | object0                               |-                                       |-         | position (m)             |
-        | 6   | Relative puck x position with respect to gripper x position in global coordinates. Equals to x<sub>puck</sub> - x<sub>gripper</sub>   | -Inf   | Inf    | object0                               |-                                       |-         | position (m)             |
-        | 7   | Relative puck y position with respect to gripper y position in global coordinates. Equals to y<sub>puck</sub> - y<sub>gripper</sub>   | -Inf   | Inf    | object0                               |-                                       |-         | position (m)             |
-        | 8   | Relative puck z position with respect to gripper z position in global coordinates. Equals to z<sub>puck</sub> - z<sub>gripper</sub>   | -Inf   | Inf    | object0                               |-                                       |-         | position (m)             |
+        | 6   | Relative puck x position with respect to gripper x position in globla coordinates. Equals to x<sub>gripper</sub> - x<sub>puck</sub>   | -Inf   | Inf    | object0                               |-                                       |-         | position (m)             |
+        | 7   | Relative puck y position with respect to gripper y position in globla coordinates. Equals to y<sub>gripper</sub> - y<sub>puck</sub>   | -Inf   | Inf    | object0                               |-                                       |-         | position (m)             |
+        | 8   | Relative puck z position with respect to gripper z position in globla coordinates. Equals to z<sub>gripper</sub> - z<sub>puck</sub>   | -Inf   | Inf    | object0                               |-                                       |-         | position (m)             |
         | 9   | Joint displacement of the right gripper finger                                                                                        | -Inf   | Inf    |-                                      | robot0:r_gripper_finger_joint          | hinge    | position (m)             |
         | 10  | Joint displacement of the left gripper finger                                                                                         | -Inf   | Inf    |-                                      | robot0:l_gripper_finger_joint          | hinge    | position (m)             |
         | 11  | Global x rotation of the puck in a XYZ Euler frame rotation                                                                           | -Inf   | Inf    | object0                               |-                                       |-         | angle (rad)              |
@@ -116,15 +116,12 @@ class MujocoFetchSlideEnv(MujocoFetchEnv, EzPickle):
     - *sparse*: the returned reward can have two values: `-1` if the puck hasn't reached its final target position, and `0` if the puck is in the final target position (the puck is considered to have reached the goal if the Euclidean distance between both is lower than 0.05 m).
     - *dense*: the returned reward is the negative Euclidean distance between the achieved goal position and the desired goal.
 
-    To initialize this environment with one of the mentioned reward functions the type of reward must be specified in the id string when the environment is initialized. For `sparse` reward the id is the default of the environment, `FetchSlide-v3`. However, for `dense` reward the id must be modified to `FetchSlideDense-v3` and initialized as follows:
+    To initialize this environment with one of the mentioned reward functions the type of reward must be specified in the id string when the environment is initialized. For `sparse` reward the id is the default of the environment, `FetchSlide-v2`. However, for `dense` reward the id must be modified to `FetchSlideDense-v2` and initialized as follows:
 
     ```python
     import gymnasium as gym
-    import gymnasium_robotics
 
-    gym.register_envs(gymnasium_robotics)
-
-    env = gym.make('FetchSlideDense-v3')
+    env = gym.make('FetchSlideDense-v2')
     ```
 
     ## Starting State
@@ -148,15 +145,12 @@ class MujocoFetchSlideEnv(MujocoFetchEnv, EzPickle):
 
     ```python
     import gymnasium as gym
-    import gymnasium_robotics
 
-    gym.register_envs(gymnasium_robotics)
-
-    env = gym.make('FetchSlide-v3', max_episode_steps=100)
+    env = gym.make('FetchSlide-v2', max_episode_steps=100)
     ```
 
     ## Version History
-    * v3: Fixed bug: `env.reset()` not properly resetting the internal state. Fetch environments now properly reset their state (related [GitHub issue](https://github.com/Farama-Foundation/Gymnasium-Robotics/issues/207)).
+
     * v2: the environment depends on the newest [mujoco python bindings](https://mujoco.readthedocs.io/en/latest/python.html) maintained by the MuJoCo team in Deepmind.
     * v1: the environment depends on `mujoco_py` which is no longer maintained.
     """

@@ -5,11 +5,26 @@ import numpy as np
 from gymnasium_robotics.envs.robot_env import MujocoPyRobotEnv, MujocoRobotEnv
 from gymnasium_robotics.utils import rotations
 
+#DEFAULT_CAMERA_CONFIG = {
+#    "distance": 1.5,
+#    "azimuth": 132.0,
+#    "elevation": -14.0,
+#    "lookat": np.array([1.3, 0.75, 0.55]),
+#}
+
+# INIT CAMERA CONFIG
+#DEFAULT_CAMERA_CONFIG = {
+#    "distance": 2.5,
+#    "azimuth": 132.0,
+#    "elevation": -14.0,
+#    "lookat": np.array([1.3, 0.75, 0.55]),
+#}
+
 DEFAULT_CAMERA_CONFIG = {
-    "distance": 2.5,
-    "azimuth": 132.0,
-    "elevation": -14.0,
-    "lookat": np.array([1.3, 0.75, 0.55]),
+    "distance": 1.5,
+    "azimuth": 180.0,
+    "elevation": -40.0,
+    "lookat": np.array([1.3, 0.75, 0.45]),
 }
 
 
@@ -37,7 +52,7 @@ def get_base_fetch_env(RobotEnvClass: Union[MujocoPyRobotEnv, MujocoRobotEnv]):
             target_range,
             distance_threshold,
             reward_type,
-            **kwargs,
+            **kwargs
         ):
             """Initializes a new Fetch environment.
 
@@ -205,9 +220,9 @@ class MujocoPyFetchEnv(get_base_fetch_env(MujocoPyRobotEnv)):
             object_rel_pos = object_pos - grip_pos
             object_velp -= grip_velp
         else:
-            object_pos = object_rot = object_velp = object_velr = object_rel_pos = (
-                np.zeros(0)
-            )
+            object_pos = (
+                object_rot
+            ) = object_velp = object_velr = object_rel_pos = np.zeros(0)
         gripper_state = robot_qpos[-2:]
 
         gripper_vel = (
@@ -338,9 +353,9 @@ class MujocoFetchEnv(get_base_fetch_env(MujocoRobotEnv)):
             object_rel_pos = object_pos - grip_pos
             object_velp -= grip_velp
         else:
-            object_pos = object_rot = object_velp = object_velr = object_rel_pos = (
-                np.zeros(0)
-            )
+            object_pos = (
+                object_rot
+            ) = object_velp = object_velr = object_rel_pos = np.zeros(0)
         gripper_state = robot_qpos[-2:]
 
         gripper_vel = (
@@ -373,8 +388,11 @@ class MujocoFetchEnv(get_base_fetch_env(MujocoRobotEnv)):
         self._mujoco.mj_forward(self.model, self.data)
 
     def _reset_sim(self):
-        # Reset buffers for joint states, actuators, warm-start, control buffers etc.
-        self._mujoco.mj_resetData(self.model, self.data)
+        self.data.time = self.initial_time
+        self.data.qpos[:] = np.copy(self.initial_qpos)
+        self.data.qvel[:] = np.copy(self.initial_qvel)
+        if self.model.na != 0:
+            self.data.act[:] = None
 
         # Randomize start position of object.
         if self.has_object:
@@ -394,6 +412,14 @@ class MujocoFetchEnv(get_base_fetch_env(MujocoRobotEnv)):
 
         self._mujoco.mj_forward(self.model, self.data)
         return True
+    
+    def set_state(self, qpos, qvel, goal):
+        self.goal = np.copy(goal)
+        self.data.qpos[:] = np.copy(qpos)
+        self.data.qvel[:] = np.copy(qvel)
+        if self.model.na == 0:
+            self.data.act[:] = None
+        self._mujoco.mj_forward(self.model, self.data)
 
     def _env_setup(self, initial_qpos):
         for name, value in initial_qpos.items():
@@ -420,3 +446,21 @@ class MujocoFetchEnv(get_base_fetch_env(MujocoRobotEnv)):
             self.height_offset = self._utils.get_site_xpos(
                 self.model, self.data, "object0"
             )[2]
+            
+            
+    def move_to_goal(self, goal_position, mj_steps=3):
+        
+        # Move end effector into position.
+        gripper_target = goal_position #+ self._utils.get_site_xpos(self.model, self.data, "robot0:grip")
+        gripper_rotation = np.array([1.0, 0.0, 1.0, 0.0])
+        self._utils.set_mocap_pos(self.model, self.data, "robot0:mocap", gripper_target)
+        self._utils.set_mocap_quat(
+            self.model, self.data, "robot0:mocap", gripper_rotation
+        )
+        for _ in range(mj_steps):
+            self._mujoco.mj_step(self.model, self.data, nstep=self.n_substeps)
+            
+    
+    def set_goal(self, goal):
+        self.goal = goal
+        
